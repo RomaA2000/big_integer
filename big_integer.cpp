@@ -144,7 +144,7 @@ bool big_integer::is_number(char c) {
   return (('0' <= c) && (c <= '9'));
 }
 
-big_integer::big_integer() : data(), sgn(false) {}
+big_integer::big_integer() :sgn(false), data() {}
 
 big_integer::big_integer(std::vector<main_type> &v, bool sgn = false) : data(v), sgn(sgn) {
   shrink_to_fit();
@@ -483,22 +483,22 @@ big_integer &big_integer::mod_or_div(big_integer const &in, bool mode = false) {
     *this -= now;
   }
   now.mov_right();
-  big_integer div;
+  buffer_type div;
   for (size_t i = m; i--; now.mov_right()) {
       div = 0;
-      div.push_back(safe_get(n + i - 1));
-      div.push_back(safe_get(n + i));
-      div.div_short(divisor.back());
-      if (div.size() > 1) {
-        div.clear();
-        div.push_back(std::numeric_limits<main_type>::max());
+      div += (safe_get(n + i - 1));
+      div += (((buffer_type)safe_get(n + i)) * MAIN_DIGIT);
+      div /= divisor.back();
+      if (div > MAIN_MAX) {
+        div = std::numeric_limits<main_type>::max();
       }
-      *this -= div * now;
+      big_integer tmp((main_type)(div & MAIN_MAX));
+      *this -= now * tmp;
       while(*this < 0) {
         --div;
         *this += now;
       }
-      ans.push_back(div.safe_get(0));
+      ans.push_back((main_type)(div & MAIN_MAX));
   }
   std::reverse(ans.data.begin(), ans.data.end());
   ans.sgn = ans_sgn;
@@ -631,8 +631,8 @@ big_integer &big_integer::operator<<=(int in) {
     sgn = false;
     to_addition();
     buffer_type now = 0;
-    size_t ans = (size_t) in >> 5;
-    in &= 63;
+    size_t ans = (size_t) in >> POWER_OF_SIZE;
+    in &= (MAIN_TYPE_SIZE - 1);
     for (size_t i = 0; i < size(); ++i) {
       now |= ((buffer_type) data[i]) << in;
       data[i] = (main_type) (now & MAIN_MAX);
@@ -655,11 +655,11 @@ big_integer &big_integer::operator>>=(int in) {
     sgn = false;
     to_addition();
     buffer_type now = 0;
-    size_t ans = (size_t) in >> 5; //because in > 0
-    in &= 63;
+    size_t ans = (size_t) in >> POWER_OF_SIZE; //because in > 0
+    in &= (MAIN_TYPE_SIZE - 1);
     for (size_t i = size(); i--;) {
       buffer_type temp = data[i];
-      data[i] = (main_type) ((now << (64 - in)) + (data[i] >> in));
+      data[i] = (main_type) ((now << (MAIN_TYPE_SIZE - in)) + (data[i] >> in));
       now = (((buffer_type) 1 << in) - 1) & temp;
     }
     shrink_to_fit();

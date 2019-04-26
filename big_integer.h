@@ -10,12 +10,13 @@
 #include <algorithm>
 class big_integer {
   bool sgn;
-  typedef uint64_t main_type;
+  typedef uint32_t main_type;
   typedef int64_t signed_main_type;
-  typedef __uint128_t buffer_type;
-  typedef __int128_t signed_buffer_type;
-  static const main_type MAIN_MAX = UINT64_MAX;
-  static const main_type MAIN_TYPE_SIZE = 64;
+  typedef uint64_t buffer_type;
+  typedef int64_t signed_buffer_type;
+  static const main_type MAIN_MAX = UINT32_MAX;
+  static const main_type MAIN_TYPE_SIZE = 32;
+  static const main_type POWER_OF_SIZE = 5;
   static const buffer_type MAIN_DIGIT = (buffer_type)MAIN_MAX + (buffer_type) 1;
   std::vector<main_type> data;
   big_integer &mod_or_div(big_integer const &, bool);
