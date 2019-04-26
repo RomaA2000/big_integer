@@ -381,7 +381,7 @@ big_integer &big_integer::operator+=(big_integer const &in)  {
     } else {
       big_integer now = in;
       now.part_sub(*this);
-      (*this) = now;
+      swap(now);
     }
   } else {
     big_integer now = in;
@@ -390,7 +390,8 @@ big_integer &big_integer::operator+=(big_integer const &in)  {
       part_sub(now);
     } else {
       now.part_sub(*this);
-      (*this) = -now;
+      now.sgn ^= 1;
+      swap(now);
     }
   }
   shrink_to_fit();
@@ -442,7 +443,13 @@ big_integer &big_integer::operator*=(big_integer const &in) {
 
 big_integer &big_integer::mod_or_div(big_integer const &in, bool mode = false) {
   if (is_zero() || (compare_by_abs(in) == 1)) {
-    return mode ? *this = in : *this = big_integer();
+    if (mode) {
+      *this = in;
+    }
+    else {
+      *this = big_integer();
+    }
+    return *this;
   }
   bool ans_sgn = sgn ^ in.sgn;
   bool start_sgn = sgn;
@@ -499,7 +506,12 @@ big_integer &big_integer::mod_or_div(big_integer const &in, bool mode = false) {
   this->div_short(norm);
   this->sgn = start_sgn;
   shrink_to_fit();
-  return (mode ? *this : *this = ans);
+  if (mode) {
+    return *this;
+  } else {
+    swap(ans);
+    return *this;
+  }
 }
 
 big_integer &big_integer::operator/=(big_integer const &in) {

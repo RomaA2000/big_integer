@@ -7,7 +7,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
+#include <algorithm>
 class big_integer {
   bool sgn;
   typedef uint64_t main_type;
