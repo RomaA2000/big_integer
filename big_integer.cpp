@@ -1,0 +1,696 @@
+//
+// Created by Роман Агеев on 2019-04-15.
+//
+
+#include "big_integer.h"
+
+big_integer big_integer::moved(size_t in) {
+  std::vector<main_type> out(in + 1, 0);
+  out.back() = (main_type)1;
+  return big_integer(out, false);
+}
+
+big_integer &big_integer::operator+=(main_type in) {
+  auto now = (buffer_type) in;
+  for (size_t i = 0; i < size(); ++i) {
+    now += (buffer_type) data[i];
+    data[i] = (main_type) (now & MAIN_MAX);
+    now >>= MAIN_TYPE_SIZE;
+  }
+  while (now > 0) {
+    push_back((main_type) (now & MAIN_MAX));
+    now >>= MAIN_TYPE_SIZE;
+  }
+  shrink_to_fit();
+  return *this;
+}
+
+big_integer &big_integer::operator*=(main_type in) {
+  buffer_type now = 0;
+  for (size_t i = 0; i < size(); ++i) {
+    now += (buffer_type) data[i] * (buffer_type) in;
+    data[i] = (main_type) (now & MAIN_MAX);
+    now >>= MAIN_TYPE_SIZE;
+  }
+  while (now > 0) {
+    push_back((main_type) (now & MAIN_MAX));
+    now >>= MAIN_TYPE_SIZE;
+  }
+  shrink_to_fit();
+  return *this;
+}
+
+big_integer &big_integer::operator*=(int in) {
+  main_type input = std::abs(in);
+  *this *= input;
+  sgn ^= (in < 0);
+  return *this;
+}
+
+
+big_integer big_integer::div_short(main_type in) {
+  buffer_type now = 0, carry_flag = 0;
+  main_type mod = 0;
+  const main_type m_t_size_mod_in = (main_type) (MAIN_DIGIT % in);
+  for (size_t i = data.size(); i--;) {
+    now = (buffer_type) data[i] + carry_flag * MAIN_DIGIT;
+    mod = (main_type) (((buffer_type) data[i] + (buffer_type) m_t_size_mod_in * (buffer_type) mod) % in);
+    carry_flag = now % in;
+    data[i] = (main_type) (now / in);
+  }
+  shrink_to_fit();
+  big_integer out = big_integer(mod);
+  out.sgn = sgn;
+  return out;
+}
+
+big_integer &big_integer::part_add(big_integer const &in) {
+  buffer_type now = 0;
+  increase_to_size(in.size());
+  size_t j = in.size();
+  for (size_t i = 0; i < in.size(); ++i) {
+    now += (buffer_type) data[i] + (buffer_type) in[i];
+    data[i] = (main_type) (now & MAIN_MAX);
+    now >>= MAIN_TYPE_SIZE;
+  }
+  while (now > 0) {
+    increase_to_size(j + 1);
+    now += (buffer_type) data[j];
+    data[j] = (main_type) (now & MAIN_MAX);
+    now >>= MAIN_TYPE_SIZE;
+  }
+  shrink_to_fit();
+  return *this;
+}
+
+big_integer &big_integer::part_sub(big_integer const &in) {
+  signed_buffer_type now = 0;
+  increase_to_size(in.size());
+  size_t j = in.size();
+  for (size_t i = 0; i < in.size(); ++i) {
+    now += (signed_buffer_type) data[i] - (signed_buffer_type) in[i];
+    if (now >= 0) {
+      data[i] = (main_type) (now);
+      now = 0;
+    } else {
+      data[i] = (main_type) (now + (signed_buffer_type) MAIN_DIGIT);
+      now = -1;
+    }
+  }
+  increase_to_size(in.size() + 1);
+  while (now != 0) {
+    now += (signed_buffer_type) data[j];
+    if (now >= 0) {
+      data[j] = (main_type) (now);
+      now = 0;
+    } else {
+      data[j] = (main_type) (now + MAIN_DIGIT);
+      now = -1;
+    }
+  }
+  shrink_to_fit();
+  return *this;
+}
+
+void big_integer::negate() {
+  sgn = !sgn;
+}
+
+big_integer::main_type const &big_integer::operator[](size_t i) const {
+  return data[i];
+}
+
+big_integer::main_type &big_integer::operator[](size_t i) {
+  return data[i];
+}
+
+void big_integer::pop_back() {
+  data.pop_back();
+}
+
+void big_integer::push_back(big_integer::main_type in) {
+  data.push_back(in);
+}
+
+const big_integer::main_type &big_integer::back() const {
+  return data.back();
+}
+
+big_integer::main_type &big_integer::back() {
+  return data.back();
+}
+
+bool big_integer::is_number(char c) {
+  return (('0' <= c) && (c <= '9'));
+}
+
+big_integer::big_integer() : data(), sgn(false) {}
+
+big_integer::big_integer(std::vector<main_type> &v, bool sgn = false) : data(v), sgn(sgn) {
+  shrink_to_fit();
+}
+
+big_integer::big_integer(const big_integer &in) = default;
+
+big_integer::big_integer(int in) {
+  signed_buffer_type out = in;
+  clear();
+  sgn = out < 0;
+  push_back((main_type) (sgn ? -out : out));
+  shrink_to_fit();
+}
+
+big_integer::big_integer(uint32_t in) {
+  clear();
+  data.push_back((main_type) in);
+  sgn = false;
+}
+
+big_integer::big_integer(uint64_t in) {
+  clear();
+  push_back((main_type) in);
+  auto new_in = (main_type) (in >> 32);
+  if (new_in > 0) {
+    push_back(new_in);
+  }
+  sgn = false;
+}
+
+big_integer::big_integer(std::string const &in) {
+  clear();
+  push_back(0);
+  bool wassgn = false;
+  for (char i : in) {
+    if (is_number(i)) {
+      *this *= ((main_type) 10);
+      *this += ((main_type) i - '0');
+    } else if (i == '-') {
+      wassgn = true;
+    } else if (i == '+') {
+      wassgn = false;
+    }
+  }
+  sgn = wassgn;
+  if (sgn && empty()) {
+    sgn = false;
+  }
+  shrink_to_fit();
+}
+
+big_integer::~big_integer() = default;
+
+size_t big_integer::size() const {
+  return data.size();
+}
+
+bool big_integer::is_positive() const {
+  return !sgn;
+}
+
+bool big_integer::is_zero() const {
+  return (!sgn) && (empty());
+}
+
+bool big_integer::is_one() const {
+  return (size() == 1) && (data[0] == 1);
+}
+
+bool big_integer::empty() const {
+  return data.empty();
+}
+
+bool big_integer::is_two_pow() {
+  if (back() != 1) return false;
+  for (size_t i = 0; i < size() - 1; ++i) {
+    if (data[i] != 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void big_integer::to_addition() {
+  if (sgn && !is_zero()) {
+    invert_bytes();
+    sgn = false;
+    ++(*this);
+    sgn = true;
+  }
+}
+
+void big_integer::back_from_addition() {
+  if (sgn && !is_zero()) {
+    sgn = false;
+    --(*this);
+    sgn = true;
+    invert_bytes();
+  }
+}
+
+void big_integer::invert_bytes() {
+  for (size_t i = 0; i < size(); ++i) {
+    data[i] = ~data[i];
+  }
+}
+
+void big_integer::increase_to_size(size_t in) {
+  shrink_to_fit();
+  if (size() < in) {
+    data.resize(in);
+  }
+}
+
+void big_integer::increase_size_on(size_t in) {
+  increase_to_size(size() + in);
+}
+
+void big_integer::shrink_to_fit() {
+  while (!(empty()) && (back() == 0)) {
+    pop_back();
+  }
+  if (empty()) {
+    sgn = false;
+  }
+}
+
+void big_integer::clear() {
+  data.clear();
+}
+
+void big_integer::mov_right(size_t n = 1) {
+  size_t new_size = size() - n;
+  for (size_t i = 0; i < new_size; ++i) {
+    data[i] = data[i + n];
+  }
+  if (new_size > 0) {
+    data.resize(new_size);
+  } else {
+    data.clear();
+  }
+  shrink_to_fit();
+}
+
+big_integer &big_integer::operator=(big_integer const &in) = default;
+
+big_integer &big_integer::abstract_binary(big_integer &in, main_type (*f)(main_type, main_type)) {
+  size_t max_size = std::max(size(), in.size());
+  to_addition();
+  in.to_addition();
+  increase_to_size(max_size);
+  in.increase_to_size(max_size);
+  for (size_t i = 0; i < max_size; ++i) {
+    data[i] = f(data[i], in[i]);
+  }
+  sgn = (bool) f((main_type) sgn, (main_type) in.sgn);
+  shrink_to_fit();
+  back_from_addition();
+  return (*this);
+}
+
+big_integer &big_integer::operator&=(big_integer const &in) {
+  big_integer in_new(in);
+  abstract_binary(in_new, [](main_type a, main_type b) { return (a & b); });
+  return *(this);
+}
+
+big_integer &big_integer::operator|=(big_integer const &in) {
+  big_integer in_new(in);
+  abstract_binary(in_new, [](main_type a, main_type b) { return (a | b); });
+  return *(this);
+}
+
+big_integer &big_integer::operator^=(big_integer const &in) {
+  big_integer in_new(in);
+  abstract_binary(in_new, [](main_type a, main_type b) { return (a ^ b); });
+  return *(this);
+}
+
+bool operator==(big_integer const &in1, big_integer const &in2) {
+  if ((in1.sgn != in2.sgn) || (in1.size() != in2.size())) {
+    return false;
+  }
+  for (size_t i = 0; i < in1.size(); ++i) {
+    if (in1[i] != in2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool operator!=(big_integer const &in1, big_integer const &in2) {
+  return !(in1 == in2);
+}
+
+bool operator<(big_integer const &in1, big_integer const &in2) {
+  if (in1.sgn ^ in2.sgn) {
+    return in1.sgn > in2.sgn;
+  }
+  return (in1.sgn) ^ (in1.compare_by_abs(in2) > 0);
+}
+
+bool operator>(big_integer const &in1, big_integer const &in2) {
+  return (in2 < in1);
+}
+
+bool operator<=(big_integer const &in1, big_integer const &in2) {
+  return !(in1 > in2);
+}
+
+bool operator>=(big_integer const &in1, big_integer const &in2) {
+  return !(in1 < in2);
+}
+
+big_integer abs(big_integer const &in) {
+  big_integer new_b = in;
+  new_b.sgn = false;
+  return new_b;
+}
+
+big_integer &big_integer::operator+=(big_integer const &in)  {
+  if (in.is_zero()) {
+    return (*this);
+  } else if (is_zero()) {
+    (*this) = in;
+  } else if (sgn == in.sgn) {
+    part_add(in);
+  } else if (sgn) {
+    negate();
+    if (*this > in) {
+      part_sub(in);
+      negate();
+    } else {
+      big_integer now = in;
+      now.part_sub(*this);
+      (*this) = now;
+    }
+  } else {
+    big_integer now = in;
+    now.negate();
+    if (*this > now) {
+      part_sub(now);
+    } else {
+      now.part_sub(*this);
+      (*this) = -now;
+    }
+  }
+  shrink_to_fit();
+  return (*this);
+}
+
+big_integer &big_integer::operator-=(big_integer const &in) {
+  *this += (-in);
+  return (*this);
+}
+
+void big_integer::mov_left(size_t in = 1) {
+  size_t last = size();
+  data.resize(last + in, 0);
+  for (size_t i = last; last != 0 && i--;) {
+    data[i + in] = data[i];
+  }
+  for (size_t i = in; in != 0 && i--;) {
+    data[i] = 0;
+  }
+  shrink_to_fit();
+}
+
+big_integer &big_integer::operator*=(big_integer const &in) {
+  big_integer ans;
+  if (is_zero() || in.is_zero()) {
+    return *this = 0;
+  }
+  ans.increase_size_on(size() + in.size());
+  buffer_type now = 0;
+  for (size_t i = 0; i < size(); ++i) {
+    size_t k = i + in.size();
+    for (size_t j = 0; j < in.size(); ++j) {
+      now += (buffer_type) ans[j + i] + ((buffer_type) data[i]) * in[j];
+      ans[j + i] = (main_type) (now & MAIN_MAX);
+      now >>= MAIN_TYPE_SIZE;
+    }
+    while (now > 0) {
+      now += (buffer_type) ans[k];
+      ans[k++] = (main_type) (now & MAIN_MAX);
+      now >>= MAIN_TYPE_SIZE;
+    }
+  }
+  ans.shrink_to_fit();
+  ans.sgn = sgn ^ in.sgn;
+  swap(ans);
+  return (*this);
+}
+
+big_integer &big_integer::mod_or_div(big_integer const &in, bool mode = false) {
+  if (is_zero() || (compare_by_abs(in) == 1)) {
+    return mode ? *this = in : *this = big_integer();
+  }
+  bool ans_sgn = sgn ^ in.sgn;
+  bool start_sgn = sgn;
+  this->abs();
+  if (in.size() == 1) {
+    big_integer mod = div_short(in[0]);
+    sgn = ans_sgn;
+    if (mode) {
+      *this = mod;
+      this->sgn = start_sgn;
+    }
+    shrink_to_fit();
+    return *this;
+  }
+  if (compare_by_abs(in) == 0) {
+    return mode ? *this = big_integer() : *this = (ans_sgn ? big_integer(-1) : big_integer(1));
+  }
+  big_integer ans;
+  big_integer divisor = in;
+  main_type norm = (main_type) ((buffer_type)MAIN_DIGIT/(divisor.back() + 1));
+  *this *= norm;
+  divisor *= norm;
+  divisor.abs();
+  size_t n = divisor.size();
+  size_t m = size() - n;
+  ans.data.reserve(m);
+  big_integer now = divisor;
+  now.mov_left(m);
+  if (*this >= now) {
+    ans.push_back(1);
+    *this -= now;
+  }
+  now.mov_right();
+  big_integer div;
+  for (size_t i = m; i--; now.mov_right()) {
+      div = 0;
+      div.push_back(safe_get(n + i - 1));
+      div.push_back(safe_get(n + i));
+      div.div_short(divisor.back());
+      if (div.size() > 1) {
+        div.clear();
+        div.push_back(std::numeric_limits<main_type>::max());
+      }
+      *this -= div * now;
+      while(*this < 0) {
+        --div;
+        *this += now;
+      }
+      ans.push_back(div.safe_get(0));
+  }
+  std::reverse(ans.data.begin(), ans.data.end());
+  ans.sgn = ans_sgn;
+  ans.shrink_to_fit();
+  this->div_short(norm);
+  this->sgn = start_sgn;
+  shrink_to_fit();
+  return (mode ? *this : *this = ans);
+}
+
+big_integer &big_integer::operator/=(big_integer const &in) {
+  return mod_or_div(in);
+}
+
+big_integer &big_integer::operator%=(big_integer const &in) {
+  return mod_or_div(in, true);
+}
+
+void big_integer::swap(big_integer &in) {
+  std::swap(data, in.data);
+  std::swap(sgn, in.sgn);
+}
+
+big_integer big_integer::operator+() const {
+  big_integer ans = *this;
+  return ans;
+}
+
+big_integer big_integer::operator-() const {
+  if (!is_zero()) {
+    big_integer ans = *this;
+    ans.sgn ^= 1;
+    return ans;
+  } else {
+    return *this;
+  }
+}
+
+big_integer big_integer::operator~() const {
+  return -*this - 1;
+}
+
+void big_integer::abs() {
+  sgn = false;
+}
+
+big_integer &big_integer::operator++() {
+  *this += big_integer(1);
+  return *this;
+}
+const big_integer big_integer::operator++(int) {
+  const big_integer tmp = *this;
+  ++(*this);
+  return tmp;
+}
+big_integer &big_integer::operator--() {
+  *this -= 1;
+  return *this;
+}
+
+const big_integer big_integer::operator--(int) {
+  const big_integer tmp = *this;
+  --(*this);
+  return tmp;
+}
+
+big_integer operator|(big_integer in1, big_integer const &in2) {
+  return in1 |= in2;
+}
+
+big_integer operator&(big_integer in1, big_integer const &in2) {
+  return in1 &= in2;
+}
+
+big_integer operator^(big_integer in1, big_integer const &in2) {
+  return in1 ^= in2;
+}
+
+big_integer operator+(big_integer in1, big_integer const &in2) {
+  return in1 += in2;
+}
+
+big_integer operator-(big_integer in1, big_integer const &in2) {
+  return in1 -= in2;
+}
+
+big_integer operator*(big_integer in1, big_integer const &in2) {
+  return in1 *= in2;
+}
+
+big_integer operator/(big_integer in1, big_integer const &in2) {
+  return in1 /= in2;
+}
+
+big_integer operator%(big_integer in1, big_integer const &in2) {
+  return in1 %= in2;
+}
+
+std::string to_string(big_integer in) {
+  if (in.is_zero()) {
+    return "0";
+  }
+  bool sg = in.sgn;
+  std::string ans;
+  ans.reserve(in.size() * 20);
+  big_integer now;
+  while (!in.is_zero()) {
+    now = in.div_short(10);
+    ans.push_back(char('0' + now[0] % 10));
+    in.shrink_to_fit();
+  }
+  while (!ans.empty() && ans.back() == '0')
+    ans.pop_back();
+  if (sg) {
+    ans.push_back('-');
+  }
+  std::reverse(ans.begin(), ans.end());
+  return ans;
+}
+big_integer &big_integer::operator<<=(int in) {
+  if (in < 0) {
+    return *this >>= (-in);
+  } else {
+    bool sg = sgn;
+    sgn = false;
+    to_addition();
+    buffer_type now = 0;
+    size_t ans = (size_t) in >> 5;
+    in &= 63;
+    for (size_t i = 0; i < size(); ++i) {
+      now |= ((buffer_type) data[i]) << in;
+      data[i] = (main_type) (now & MAIN_MAX);
+      now >>= MAIN_TYPE_SIZE;
+    }
+    if (now > 0) {
+      push_back((main_type) now);
+    }
+    shrink_to_fit();
+    *this *= moved(ans);
+    sgn = sg;
+    return *this;
+  }
+}
+big_integer &big_integer::operator>>=(int in) {
+  if (in < 0) {
+    return *this >>= (-in);
+  } else {
+    bool sg = sgn;
+    sgn = false;
+    to_addition();
+    buffer_type now = 0;
+    size_t ans = (size_t) in >> 5; //because in > 0
+    in &= 63;
+    for (size_t i = size(); i--;) {
+      buffer_type temp = data[i];
+      data[i] = (main_type) ((now << (64 - in)) + (data[i] >> in));
+      now = (((buffer_type) 1 << in) - 1) & temp;
+    }
+    shrink_to_fit();
+    if (sg && !is_two_pow()) {
+      ++*this;
+    }
+    shrink_to_fit();
+    *this *= moved(ans);
+    sgn = sg;
+    return *this;
+  }
+}
+big_integer operator<<(big_integer in, int i) {
+  return in <<= i;
+}
+big_integer operator>>(big_integer in, int i) {
+  return in >>= i;
+}
+
+std::ostream &operator<<(std::ostream &s, const big_integer &in) {
+  s << to_string(in);
+  return s;
+}
+
+std::istream &operator>>(std::istream &s, big_integer &in) {
+  std::string source;
+  s >> source;
+  in = big_integer(source);
+  return s;
+}
+
+int32_t big_integer::compare_by_abs(big_integer const &in) const {
+  if (size() != in.size()) {
+    return (size() < in.size() ? 1 : -1);
+  }
+  for (size_t i = size(); i--;) {
+    if (data[i] != in.data[i]) {
+      return data[i] < in.data[i] ? 1 : -1;
+    }
+  }
+  return 0;
+}
+
+big_integer::main_type big_integer::safe_get(size_t in) const {
+  return (in < size()) ? data[in] : 0;
+}
