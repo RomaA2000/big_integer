@@ -41,7 +41,7 @@ big_integer &big_integer::operator*=(main_type in) {
 }
 
 big_integer &big_integer::operator*=(int in) {
-  main_type input = std::abs(in);
+  main_type input = (main_type)std::abs(in);
   *this *= input;
   sgn ^= (in < 0);
   return *this;
