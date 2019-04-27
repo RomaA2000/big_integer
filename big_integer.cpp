@@ -490,8 +490,9 @@ big_integer &big_integer::mod_or_div(big_integer const &in, bool mode = false) {
     if (div > MAIN_MAX) {
       div = std::numeric_limits<main_type>::max();
     }
-    big_integer tmp((main_type) (div & MAIN_MAX));
-    *this -= now * tmp;
+    big_integer tmp(now);
+    tmp *= (main_type) (div & MAIN_MAX);
+    *this -= tmp;
     while (*this < 0) {
       --div;
       *this += now;

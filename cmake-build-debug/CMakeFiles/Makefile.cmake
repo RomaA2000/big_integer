@@ -50,5 +50,5 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
-  "CMakeFiles/big_integer_testing.dir/DependInfo.cmake"
+  "CMakeFiles/BigInteger.dir/DependInfo.cmake"
   )

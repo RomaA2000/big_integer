@@ -48,10 +48,10 @@ RM = /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/romanageev/CLionProjects/cpp-course/bigint
+CMAKE_SOURCE_DIR = /Users/romanageev/CLionProjects/BigInteger
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/romanageev/CLionProjects/cpp-course/bigint/cmake-build-debug
+CMAKE_BINARY_DIR = /Users/romanageev/CLionProjects/BigInteger/cmake-build-debug
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -80,9 +80,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/romanageev/CLionProjects/cpp-course/bigint/cmake-build-debug/CMakeFiles /Users/romanageev/CLionProjects/cpp-course/bigint/cmake-build-debug/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/romanageev/CLionProjects/BigInteger/cmake-build-debug/CMakeFiles /Users/romanageev/CLionProjects/BigInteger/cmake-build-debug/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/romanageev/CLionProjects/cpp-course/bigint/cmake-build-debug/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/romanageev/CLionProjects/BigInteger/cmake-build-debug/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -111,17 +111,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named big_integer_testing
+# Target rules for targets named BigInteger
 
 # Build rule for target.
-big_integer_testing: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 big_integer_testing
-.PHONY : big_integer_testing
+BigInteger: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 BigInteger
+.PHONY : BigInteger
 
 # fast build rule for target.
-big_integer_testing/fast:
-	$(MAKE) -f CMakeFiles/big_integer_testing.dir/build.make CMakeFiles/big_integer_testing.dir/build
-.PHONY : big_integer_testing/fast
+BigInteger/fast:
+	$(MAKE) -f CMakeFiles/BigInteger.dir/build.make CMakeFiles/BigInteger.dir/build
+.PHONY : BigInteger/fast
 
 big_integer.o: big_integer.cpp.o
 
@@ -129,7 +129,7 @@ big_integer.o: big_integer.cpp.o
 
 # target to build an object file
 big_integer.cpp.o:
-	$(MAKE) -f CMakeFiles/big_integer_testing.dir/build.make CMakeFiles/big_integer_testing.dir/big_integer.cpp.o
+	$(MAKE) -f CMakeFiles/BigInteger.dir/build.make CMakeFiles/BigInteger.dir/big_integer.cpp.o
 .PHONY : big_integer.cpp.o
 
 big_integer.i: big_integer.cpp.i
@@ -138,7 +138,7 @@ big_integer.i: big_integer.cpp.i
 
 # target to preprocess a source file
 big_integer.cpp.i:
-	$(MAKE) -f CMakeFiles/big_integer_testing.dir/build.make CMakeFiles/big_integer_testing.dir/big_integer.cpp.i
+	$(MAKE) -f CMakeFiles/BigInteger.dir/build.make CMakeFiles/BigInteger.dir/big_integer.cpp.i
 .PHONY : big_integer.cpp.i
 
 big_integer.s: big_integer.cpp.s
@@ -147,89 +147,35 @@ big_integer.s: big_integer.cpp.s
 
 # target to generate assembly for a file
 big_integer.cpp.s:
-	$(MAKE) -f CMakeFiles/big_integer_testing.dir/build.make CMakeFiles/big_integer_testing.dir/big_integer.cpp.s
+	$(MAKE) -f CMakeFiles/BigInteger.dir/build.make CMakeFiles/BigInteger.dir/big_integer.cpp.s
 .PHONY : big_integer.cpp.s
 
-big_integer_testing.o: big_integer_testing.cpp.o
+test.o: test.cpp.o
 
-.PHONY : big_integer_testing.o
-
-# target to build an object file
-big_integer_testing.cpp.o:
-	$(MAKE) -f CMakeFiles/big_integer_testing.dir/build.make CMakeFiles/big_integer_testing.dir/big_integer_testing.cpp.o
-.PHONY : big_integer_testing.cpp.o
-
-big_integer_testing.i: big_integer_testing.cpp.i
-
-.PHONY : big_integer_testing.i
-
-# target to preprocess a source file
-big_integer_testing.cpp.i:
-	$(MAKE) -f CMakeFiles/big_integer_testing.dir/build.make CMakeFiles/big_integer_testing.dir/big_integer_testing.cpp.i
-.PHONY : big_integer_testing.cpp.i
-
-big_integer_testing.s: big_integer_testing.cpp.s
-
-.PHONY : big_integer_testing.s
-
-# target to generate assembly for a file
-big_integer_testing.cpp.s:
-	$(MAKE) -f CMakeFiles/big_integer_testing.dir/build.make CMakeFiles/big_integer_testing.dir/big_integer_testing.cpp.s
-.PHONY : big_integer_testing.cpp.s
-
-gtest/gtest-all.o: gtest/gtest-all.cc.o
-
-.PHONY : gtest/gtest-all.o
+.PHONY : test.o
 
 # target to build an object file
-gtest/gtest-all.cc.o:
-	$(MAKE) -f CMakeFiles/big_integer_testing.dir/build.make CMakeFiles/big_integer_testing.dir/gtest/gtest-all.cc.o
-.PHONY : gtest/gtest-all.cc.o
+test.cpp.o:
+	$(MAKE) -f CMakeFiles/BigInteger.dir/build.make CMakeFiles/BigInteger.dir/test.cpp.o
+.PHONY : test.cpp.o
 
-gtest/gtest-all.i: gtest/gtest-all.cc.i
+test.i: test.cpp.i
 
-.PHONY : gtest/gtest-all.i
-
-# target to preprocess a source file
-gtest/gtest-all.cc.i:
-	$(MAKE) -f CMakeFiles/big_integer_testing.dir/build.make CMakeFiles/big_integer_testing.dir/gtest/gtest-all.cc.i
-.PHONY : gtest/gtest-all.cc.i
-
-gtest/gtest-all.s: gtest/gtest-all.cc.s
-
-.PHONY : gtest/gtest-all.s
-
-# target to generate assembly for a file
-gtest/gtest-all.cc.s:
-	$(MAKE) -f CMakeFiles/big_integer_testing.dir/build.make CMakeFiles/big_integer_testing.dir/gtest/gtest-all.cc.s
-.PHONY : gtest/gtest-all.cc.s
-
-gtest/gtest_main.o: gtest/gtest_main.cc.o
-
-.PHONY : gtest/gtest_main.o
-
-# target to build an object file
-gtest/gtest_main.cc.o:
-	$(MAKE) -f CMakeFiles/big_integer_testing.dir/build.make CMakeFiles/big_integer_testing.dir/gtest/gtest_main.cc.o
-.PHONY : gtest/gtest_main.cc.o
-
-gtest/gtest_main.i: gtest/gtest_main.cc.i
-
-.PHONY : gtest/gtest_main.i
+.PHONY : test.i
 
 # target to preprocess a source file
-gtest/gtest_main.cc.i:
-	$(MAKE) -f CMakeFiles/big_integer_testing.dir/build.make CMakeFiles/big_integer_testing.dir/gtest/gtest_main.cc.i
-.PHONY : gtest/gtest_main.cc.i
+test.cpp.i:
+	$(MAKE) -f CMakeFiles/BigInteger.dir/build.make CMakeFiles/BigInteger.dir/test.cpp.i
+.PHONY : test.cpp.i
 
-gtest/gtest_main.s: gtest/gtest_main.cc.s
+test.s: test.cpp.s
 
-.PHONY : gtest/gtest_main.s
+.PHONY : test.s
 
 # target to generate assembly for a file
-gtest/gtest_main.cc.s:
-	$(MAKE) -f CMakeFiles/big_integer_testing.dir/build.make CMakeFiles/big_integer_testing.dir/gtest/gtest_main.cc.s
-.PHONY : gtest/gtest_main.cc.s
+test.cpp.s:
+	$(MAKE) -f CMakeFiles/BigInteger.dir/build.make CMakeFiles/BigInteger.dir/test.cpp.s
+.PHONY : test.cpp.s
 
 # Help Target
 help:
@@ -239,19 +185,13 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... big_integer_testing"
+	@echo "... BigInteger"
 	@echo "... big_integer.o"
 	@echo "... big_integer.i"
 	@echo "... big_integer.s"
-	@echo "... big_integer_testing.o"
-	@echo "... big_integer_testing.i"
-	@echo "... big_integer_testing.s"
-	@echo "... gtest/gtest-all.o"
-	@echo "... gtest/gtest-all.i"
-	@echo "... gtest/gtest-all.s"
-	@echo "... gtest/gtest_main.o"
-	@echo "... gtest/gtest_main.i"
-	@echo "... gtest/gtest_main.s"
+	@echo "... test.o"
+	@echo "... test.i"
+	@echo "... test.s"
 .PHONY : help
 
 
