@@ -6,7 +6,7 @@
 
 big_integer big_integer::moved(size_t in) {
   std::vector<main_type> out(in + 1, 0);
-  out.back() = (main_type)1;
+  out.back() = (main_type) 1;
   return big_integer(out, false);
 }
 
@@ -46,7 +46,6 @@ big_integer &big_integer::operator*=(int in) {
   sgn ^= (in < 0);
   return *this;
 }
-
 
 big_integer big_integer::div_short(main_type in) {
   buffer_type now = 0, carry_flag = 0;
@@ -144,9 +143,9 @@ bool big_integer::is_number(char c) {
   return (('0' <= c) && (c <= '9'));
 }
 
-big_integer::big_integer() :sgn(false), data() {}
+big_integer::big_integer() : sgn(false), data() {}
 
-big_integer::big_integer(std::vector<main_type> &v, bool sgn = false) : data(v), sgn(sgn) {
+big_integer::big_integer(std::vector<main_type> &v, bool sgn = false) : sgn(sgn), data(v) {
   shrink_to_fit();
 }
 
@@ -366,7 +365,7 @@ big_integer abs(big_integer const &in) {
   return new_b;
 }
 
-big_integer &big_integer::operator+=(big_integer const &in)  {
+big_integer &big_integer::operator+=(big_integer const &in) {
   if (in.is_zero()) {
     return (*this);
   } else if (is_zero()) {
@@ -445,13 +444,12 @@ big_integer &big_integer::mod_or_div(big_integer const &in, bool mode = false) {
   if (is_zero() || (compare_by_abs(in) == 1)) {
     if (mode) {
       *this = in;
-    }
-    else {
+    } else {
       *this = big_integer();
     }
     return *this;
   }
-  bool ans_sgn = sgn ^ in.sgn;
+  bool ans_sgn = sgn ^in.sgn;
   bool start_sgn = sgn;
   this->abs();
   if (in.size() == 1) {
@@ -469,7 +467,7 @@ big_integer &big_integer::mod_or_div(big_integer const &in, bool mode = false) {
   }
   big_integer ans;
   big_integer divisor = in;
-  main_type norm = (main_type) ((buffer_type)MAIN_DIGIT/(divisor.back() + 1));
+  main_type norm = (main_type) ((buffer_type) MAIN_DIGIT / (divisor.back() + 1));
   *this *= norm;
   divisor *= norm;
   divisor.abs();
@@ -485,20 +483,20 @@ big_integer &big_integer::mod_or_div(big_integer const &in, bool mode = false) {
   now.mov_right();
   buffer_type div;
   for (size_t i = m; i--; now.mov_right()) {
-      div = 0;
-      div += (safe_get(n + i - 1));
-      div += (((buffer_type)safe_get(n + i)) * MAIN_DIGIT);
-      div /= divisor.back();
-      if (div > MAIN_MAX) {
-        div = std::numeric_limits<main_type>::max();
-      }
-      big_integer tmp((main_type)(div & MAIN_MAX));
-      *this -= now * tmp;
-      while(*this < 0) {
-        --div;
-        *this += now;
-      }
-      ans.push_back((main_type)(div & MAIN_MAX));
+    div = 0;
+    div += (safe_get(n + i - 1));
+    div += (((buffer_type) safe_get(n + i)) * MAIN_DIGIT);
+    div /= divisor.back();
+    if (div > MAIN_MAX) {
+      div = std::numeric_limits<main_type>::max();
+    }
+    big_integer tmp((main_type) (div & MAIN_MAX));
+    *this -= now * tmp;
+    while (*this < 0) {
+      --div;
+      *this += now;
+    }
+    ans.push_back((main_type) (div & MAIN_MAX));
   }
   std::reverse(ans.data.begin(), ans.data.end());
   ans.sgn = ans_sgn;
