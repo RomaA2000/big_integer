@@ -1,6 +1,18 @@
-cmake_minimum_required(VERSION 3.13)
-project(BigInteger)
+cmake_minimum_required(VERSION 2.8)
 
-set(CMAKE_CXX_STANDARD 17)
+project(BIGINT)
 
-add_executable(BigInteger big_integer.cpp big_integer.h test.cpp)
+include_directories(${BIGINT_SOURCE_DIR})
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pthread -Wall")
+
+add_executable(big_integer_testing
+               big_integer_testing.cpp
+               big_integer.h
+               big_integer.cpp
+               gtest/gtest-all.cc
+               gtest/gtest.h
+               gtest/gtest_main.cc)
+
+target_link_libraries(big_integer_testing -lpthread)
