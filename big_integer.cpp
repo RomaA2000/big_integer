@@ -2,7 +2,7 @@
 // Created by Роман Агеев on 2019-04-15.
 //
 
-#include "big_integer.h"
+#include "big_integer.hpp"
 
 big_integer big_integer::moved(size_t in) {
   std::vector<main_type> out(in + 1, 0);
